@@ -359,8 +359,8 @@ MonoBehaviour:
   rows: 6
   column: 6
   gamma: 0.9
-  wallTest: {x: 5, y: 3}
-  holeTest: {x: 4, y: 3}
+  wallTest: {x: 7, y: 7}
+  holeTest: {x: 7, y: 7}
   prefabList:
   - {fileID: 5282755024872594334, guid: 95fe018288b703945b694f2f306f5603, type: 3}
   - {fileID: 592169319057915632, guid: 6d4766d809f6c8549a240f0ad331a12b, type: 3}

@@ -114,6 +114,7 @@ public class GridWorldManager : MonoBehaviour
                     }
                     //Debug.Log(i + " " + j);
                     float temp = _grid[i, j].vs;
+                    
                     _grid[i,j].vs = gamma * ArgMaxVs( i, j);
                     delta = Mathf.Max(delta, Mathf.Abs(temp - _grid[i, j].vs));
                     
@@ -343,18 +344,13 @@ public class GridWorldManager : MonoBehaviour
         if (columnNb <= 0)
         {
             Debug.Log("no left nei");
-            tempScore[0] = -1;
+            //tempScore[0] = -1;
         }
         else
         {
-            if (CheckIfWall(rowNb,columnNb))
-            {
-                tempScore[0] = -1;
-            }
-            else
-            {
+            
                 tempScore[0] = _grid[rowNb , columnNb - 1].vs;
-            }
+            
             
         }
         
@@ -366,17 +362,11 @@ public class GridWorldManager : MonoBehaviour
         }
         else
         {
-            if (CheckIfWall(rowNb,columnNb))
-            {
-                tempScore[1] = -1;
-                
-            }
-            else
-            {
+            
                 Debug.Log(tempScore[0]);
                 Debug.Log(_grid[rowNb,columnNb + 1].vs);
                 tempScore[1] = _grid[rowNb,columnNb + 1].vs;
-            }
+            
             
         }
         //up neighbour
@@ -388,14 +378,10 @@ public class GridWorldManager : MonoBehaviour
         }
         else
         {
-            if (CheckIfWall(rowNb,columnNb))
-            {
-                tempScore[2] = -1;
-            }
-            else
-            {
+            
+            
                 tempScore[2] = _grid[rowNb+ 1, columnNb ].vs;
-            }
+            
             
         }
         
@@ -407,14 +393,10 @@ public class GridWorldManager : MonoBehaviour
         }
         else
         {
-            if (CheckIfWall(rowNb,columnNb))
-            {
-                tempScore[3] = -1;
-            }
-            else
-            {
+            
+            
                 tempScore[3] = _grid[rowNb - 1, columnNb].vs;
-            }
+            
             
         }
 
