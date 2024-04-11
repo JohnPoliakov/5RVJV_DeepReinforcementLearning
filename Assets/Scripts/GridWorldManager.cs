@@ -22,11 +22,18 @@ public class GridWorldManager : MonoBehaviour
         public float vs = 0;
     }
 
+    public GameObject tilePrefab;
+    public GameObject backgroundTile;
     public int rows = 3;
     public int column = 3;
     public float gamma = 0.9f;
+    public Vector2 wallTest = new Vector2(3, 3);
+    public Vector2 holeTest = new Vector2(4, 3);
+    private List<Vector2>  wallList;
+    private List<Vector2>  holeList;
 
     public List<GameObject> prefabList;
+    public List<Sprite> SpriteList;
     
     
     private Tile[,] _grid;
@@ -38,10 +45,15 @@ public class GridWorldManager : MonoBehaviour
         
         _grid = new Tile[rows,column];
         tabDirections = new Direction[rows, column];
-        PolicyIteration();
+        wallList = new List<Vector2>();
+        holeList = new List<Vector2>();
+        wallList.Add(wallTest);
+        holeList.Add(holeTest);
+        //PolicyIteration();
     }
 
-    void SetUpGrid()
+    
+    public void SetUpGrid()
     {
         for (int i = 0; i < rows; i++)
         {
@@ -55,7 +67,11 @@ public class GridWorldManager : MonoBehaviour
                 //Instantiate(actualGrid.Obj); 
                 _grid[i, j].Direction = (Direction) Random.Range(0, 4);
                 tabDirections[i, j] = _grid[i, j].Direction;
-                _grid[i, j].Obj = Instantiate(prefabList[(int)_grid[i,j].Direction] );
+                Instantiate(backgroundTile, new Vector3(j,i,0.1f),Quaternion.identity);
+                _grid[i, j].Obj = Instantiate(tilePrefab);
+                _grid[i, j].Obj.GetComponent<SpriteRenderer>().sprite =
+                    SpriteList[(int) _grid[i, j].Direction];
+                
                 _grid[i, j].Obj.transform.position = _grid[i, j].Position;
                 //Debug.Log(_grid[i, j].Direction);
             }
@@ -68,9 +84,50 @@ public class GridWorldManager : MonoBehaviour
         //Debug.Log(column);
         //Debug.Log(_grid[rows -2, column - 2].vs);
         _grid[rows -1, column - 1].vs = 1f;
-        
+
+        //_grid[(int)wallTest.y,(int)wallTest.x].vs = -10;
+
+        foreach (var hole in holeList)
+        {
+            _grid[(int) hole.y, (int) hole.x].vs = -10;
+        }
 
     }
+
+    public void ValueIteration()
+    {
+        //SetUpGrid();
+
+        float delta = 1f;
+        float teta = 0.02f;
+        
+        while (delta > teta)
+        {
+            delta = 0f;
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < column; j++)
+                {
+                    if (i == rows - 1 && j == column - 1)
+                    {
+                        break;
+                    }
+                    //Debug.Log(i + " " + j);
+                    float temp = _grid[i, j].vs;
+                    _grid[i,j].vs = gamma * ArgMaxVs( i, j);
+                    delta = Mathf.Max(delta, Mathf.Abs(temp - _grid[i, j].vs));
+                    
+                }
+            
+            }
+        }
+
+        DebugResultsPolicicy();
+        ApplyQs();
+
+    }
+
+    
 
     void PolicyIteration()
     {
@@ -79,7 +136,7 @@ public class GridWorldManager : MonoBehaviour
         
     }
 
-    void PolicyEvaluation()
+    public void PolicyEvaluation()
     {
         float delta = 1f;
         float teta = 0.02f;
@@ -97,15 +154,37 @@ public class GridWorldManager : MonoBehaviour
                     }
                     //Debug.Log(i + " " + j);
                     float temp = _grid[i, j].vs;
-                    _grid[i,j].vs = CheckDirection(_grid[i, j], i, j);
-                    delta = Mathf.Max(delta, Mathf.Abs(temp - _grid[i, j].vs));
+                    if (i == 3 && j == 4)
+                    {
+                        Debug.Log("vs");
+                    }
+
+                    foreach (var wall in wallList)
+                    {
+                        if (wall.x == j && wall.y == i)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            _grid[i,j].vs = CheckDirection(_grid[i, j], i, j);
+                            delta = Mathf.Max(delta, Mathf.Abs(temp - _grid[i, j].vs));
+                        }
+                    }
+                    
                     
                 }
             
             }
         }
         
+        DebugResultsPolicicy();
         
+        PolicyImprovment();
+    }
+
+    void DebugResultsPolicicy()
+    {
         for (int i = 0; i < rows; i++)
         {
             for (int j = 0; j < column; j++)
@@ -116,14 +195,13 @@ public class GridWorldManager : MonoBehaviour
             }
             
         }
-        PolicyImprovment();
     }
 
     void PolicyImprovment()
     {
         bool isPolicyStable = true;
-        Direction[,] temp = new Direction[rows,column];
-        Direction[,] listFinal = new Direction[rows,column];
+        //Direction[,] temp = new Direction[rows,column];
+        //Direction[,] listFinal = new Direction[rows,column];
         Direction temp2;
         
         
@@ -138,7 +216,7 @@ public class GridWorldManager : MonoBehaviour
                 Debug.Log(i + " " + j);
                 temp2 = _grid[i, j].Direction;
                 Debug.Log("direction avant = " + _grid[i,j].Direction );
-                _grid[i,j].Direction = ArgMax(_grid[i, j], i, j);
+                _grid[i,j].Direction = ArgMax( i, j);
 
                 //listFinal = GetListDirections();
                 if (temp2 != _grid[i,j].Direction)
@@ -166,20 +244,44 @@ public class GridWorldManager : MonoBehaviour
         }
         
     }
+    void ApplyQs()
+    {
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < column; j++)
+            {
+                if (i == rows - 1 && j == column - 1)
+                {
+                    break;
+                }
+
+                _grid[i, j].Direction = ArgMax(i, j);
+                ChangeArrow(i,j);
+            }
+            
+        }
+    }
 
     void ChangeArrow(int rowNb, int columnNb)
     {
         //DestroyImmediate(_grid[rowNb,columnNb].Obj);
-        _grid[rowNb,columnNb].Obj.SetActive(false);
-        Debug.Log("creation nouveau obj");
-        _grid[rowNb, columnNb].Obj = Instantiate(prefabList[(int) _grid[rowNb, columnNb].Direction]);
+        //_grid[rowNb,columnNb].Obj.SetActive(false);
+        //Debug.Log("creation nouveau obj");
+        //_grid[rowNb, columnNb].Obj = Instantiate(prefabList[(int) _grid[rowNb, columnNb].Direction]);
+        _grid[rowNb, columnNb].Obj.GetComponent<SpriteRenderer>().sprite =
+            SpriteList[(int) _grid[rowNb, columnNb].Direction];
         _grid[rowNb, columnNb].Obj.transform.position = _grid[rowNb, columnNb].Position;
         _grid[rowNb, columnNb].Obj.transform.GetChild(0).GetComponent<TMP_Text>().text = (Mathf.Round(_grid[rowNb, columnNb].vs*100f)/100f).ToString();
     }
 
-    Direction ArgMax(Tile tile, int rowNb, int columnNb)
+    Direction ArgMax(int rowNb, int columnNb)
     {
         float[] tempScore = new float[4];
+
+        if (rowNb == 3 && columnNb == 4)
+        {
+            Debug.Log("vs");
+        }
         
         Debug.Log("current tile = " + rowNb + " " + columnNb);
         
@@ -230,6 +332,106 @@ public class GridWorldManager : MonoBehaviour
         }
 
         return (Direction) System.Array.IndexOf(tempScore, tempScore.Max());
+    }
+    float ArgMaxVs(int rowNb, int columnNb)
+    {
+        float[] tempScore = new float[4];
+        
+        Debug.Log("current tile = " + rowNb + " " + columnNb);
+        
+        //left neighbour
+        if (columnNb <= 0)
+        {
+            Debug.Log("no left nei");
+            tempScore[0] = -1;
+        }
+        else
+        {
+            if (CheckIfWall(rowNb,columnNb))
+            {
+                tempScore[0] = -1;
+            }
+            else
+            {
+                tempScore[0] = _grid[rowNb , columnNb - 1].vs;
+            }
+            
+        }
+        
+        //right neighbour
+        if (columnNb >= column - 1)
+        {
+            Debug.Log("no right nei");
+            tempScore[1] = -1;
+        }
+        else
+        {
+            if (CheckIfWall(rowNb,columnNb))
+            {
+                tempScore[1] = -1;
+                
+            }
+            else
+            {
+                Debug.Log(tempScore[0]);
+                Debug.Log(_grid[rowNb,columnNb + 1].vs);
+                tempScore[1] = _grid[rowNb,columnNb + 1].vs;
+            }
+            
+        }
+        //up neighbour
+        if (rowNb >= rows - 1)
+        {
+            Debug.Log("no up nei");
+            tempScore[2] = -1;
+                
+        }
+        else
+        {
+            if (CheckIfWall(rowNb,columnNb))
+            {
+                tempScore[2] = -1;
+            }
+            else
+            {
+                tempScore[2] = _grid[rowNb+ 1, columnNb ].vs;
+            }
+            
+        }
+        
+        //down neighbour
+        if (rowNb <= 0)
+        {
+            Debug.Log("no down nei");
+            tempScore[3] = -1;
+        }
+        else
+        {
+            if (CheckIfWall(rowNb,columnNb))
+            {
+                tempScore[3] = -1;
+            }
+            else
+            {
+                tempScore[3] = _grid[rowNb - 1, columnNb].vs;
+            }
+            
+        }
+
+        return tempScore.Max();
+    }
+
+    bool CheckIfWall(int rowNb, int columnNb)
+    {
+        foreach (var wall in wallList)
+        {
+            if (rowNb == wall.y && columnNb == wall.x)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     Direction[,] GetListDirections()
