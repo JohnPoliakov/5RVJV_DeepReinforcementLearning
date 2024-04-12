@@ -158,7 +158,6 @@ MonoBehaviour:
   gamma: 0.9
   wallList:
   - {x: 3, y: 4}
-  - {x: 2, y: 1}
   prefabList:
   - {fileID: 5282755024872594334, guid: 95fe018288b703945b694f2f306f5603, type: 3}
   - {fileID: 592169319057915632, guid: 6d4766d809f6c8549a240f0ad331a12b, type: 3}
