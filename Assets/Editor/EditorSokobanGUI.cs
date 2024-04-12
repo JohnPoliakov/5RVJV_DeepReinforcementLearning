@@ -13,9 +13,6 @@ public class EditorSokobanGUI : Editor
         if(GUILayout.Button("set up grid"))
             manager.InitSokoban();
         
-        if(GUILayout.Button("policy"))
-            manager.PolicyEvaluation();
-        
         if(GUILayout.Button("value"))
             manager.ValueIteration();
         
