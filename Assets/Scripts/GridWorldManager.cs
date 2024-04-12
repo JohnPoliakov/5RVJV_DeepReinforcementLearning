@@ -27,9 +27,9 @@ public class GridWorldManager : MonoBehaviour
     public int rows = 3;
     public int column = 3;
     public float gamma = 0.9f;
-    public Vector2 wallTest = new Vector2(3, 3);
-    public Vector2 holeTest = new Vector2(4, 3);
-    private List<Vector2>  wallList;
+    //public Vector2 wallTest = new Vector2(3, 3);
+    //public Vector2 holeTest = new Vector2(4, 3);
+    public List<Vector2>  wallList;
     private List<Vector2>  holeList;
 
     public List<GameObject> prefabList;
@@ -47,8 +47,8 @@ public class GridWorldManager : MonoBehaviour
         tabDirections = new Direction[rows, column];
         wallList = new List<Vector2>();
         holeList = new List<Vector2>();
-        wallList.Add(wallTest);
-        holeList.Add(holeTest);
+       //wallList.Add(wallTest);
+        //holeList.Add(holeTest);
         //PolicyIteration();
     }
 
@@ -59,7 +59,7 @@ public class GridWorldManager : MonoBehaviour
         {
             for (int j = 0; j < column; j++)
             {
-                
+                //initialisation de la grid qui contiendra les infos de chaque state a telle case
                 _grid[i, j] = new Tile();
                 _grid[i, j].vs = 0f;
                 //Debug.Log(_grid[i, j].Position);
@@ -83,7 +83,7 @@ public class GridWorldManager : MonoBehaviour
         //Debug.Log(rows);
         //Debug.Log(column);
         //Debug.Log(_grid[rows -2, column - 2].vs);
-        _grid[rows -1, column - 1].vs = 1f;
+        _grid[rows -1, column - 1].vs = 1f;//on definit l'arrivée comme etant la derniere case
 
         //_grid[(int)wallTest.y,(int)wallTest.x].vs = -10;
 
@@ -198,12 +198,10 @@ public class GridWorldManager : MonoBehaviour
         }
     }
 
-    void PolicyImprovment()
+    void PolicyImprovment()//pour actualiser la policy
     {
-        bool isPolicyStable = true;
-        //Direction[,] temp = new Direction[rows,column];
-        //Direction[,] listFinal = new Direction[rows,column];
-        Direction temp2;
+        bool isPolicyStable = true;//
+        Direction temp;
         
         
         for (int i = 0; i < rows; i++)
@@ -215,15 +213,15 @@ public class GridWorldManager : MonoBehaviour
                     break;
                 }
                 Debug.Log(i + " " + j);
-                temp2 = _grid[i, j].Direction;
+                temp = _grid[i, j].Direction;
                 Debug.Log("direction avant = " + _grid[i,j].Direction );
                 _grid[i,j].Direction = ArgMax( i, j);
 
                 //listFinal = GetListDirections();
-                if (temp2 != _grid[i,j].Direction)
+                if (temp != _grid[i,j].Direction)
                 {
                     isPolicyStable = false;
-                    ChangeArrow(i,j);
+                    ChangeArrow(i,j);//fonction qui va actualiser
                 }
                 
                 
@@ -269,8 +267,10 @@ public class GridWorldManager : MonoBehaviour
         //_grid[rowNb,columnNb].Obj.SetActive(false);
         //Debug.Log("creation nouveau obj");
         //_grid[rowNb, columnNb].Obj = Instantiate(prefabList[(int) _grid[rowNb, columnNb].Direction]);
+        
+        
         _grid[rowNb, columnNb].Obj.GetComponent<SpriteRenderer>().sprite =
-            SpriteList[(int) _grid[rowNb, columnNb].Direction];
+            SpriteList[(int) _grid[rowNb, columnNb].Direction];//on recupere le component qui a le sprite affichant la policy de la tile actuelle
         _grid[rowNb, columnNb].Obj.transform.position = _grid[rowNb, columnNb].Position;
         _grid[rowNb, columnNb].Obj.transform.GetChild(0).GetComponent<TMP_Text>().text = (Mathf.Round(_grid[rowNb, columnNb].vs*100f)/100f).ToString();
     }

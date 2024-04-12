@@ -5,7 +5,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class SokobanManager : MonoBehaviour
+public class GridWorldManagerV2 : MonoBehaviour
 {
     public enum Direction
     {
@@ -82,7 +82,6 @@ public class SokobanManager : MonoBehaviour
     private int nbPossibleSPosition;
     public Vector2Int positionPlayerStart;
     private List<GameState> gameStateList;
-    
     private GameObject[,] gridTab;
         
     // Start is called before the first frame update
@@ -184,11 +183,11 @@ public class SokobanManager : MonoBehaviour
             for (int i = 0; i < gridTab.Length; i++)
             {
                 state.listePositionBox.Add(IndexToGrid(i));
-                if (state.listePositionBox.Contains(new Vector2Int(2,0)))
+                if (state.listePositionBox.Contains(new Vector2Int(1,1)))
                 {
-                    if (state.listePositionBox.Contains(new Vector2Int(0,1)))
+                    if (state.listePositionBox.Contains(new Vector2Int(0,0)))
                     {
-                            if (state.positionPlayer == new Vector2Int(0,0))
+                            if (state.positionPlayer == new Vector2Int(1,0))
                             {
                                 Debug.Log("posBoxMissExist");
                             }
@@ -213,7 +212,6 @@ public class SokobanManager : MonoBehaviour
                         //copyState.listePositionBox = copyList;
                         bool isSame = false;
                         
-                        /*
                         foreach (var listGameStateIndex in gameStateList)
                         {
                             int temp = 0;
@@ -233,8 +231,9 @@ public class SokobanManager : MonoBehaviour
                                     break;
                                 }
                             }
+                            
+                            
                         }
-                        */
 
                         if (isSame == false)
                         {
@@ -255,7 +254,6 @@ public class SokobanManager : MonoBehaviour
             
             
     }
-    
     
     
 
@@ -348,56 +346,40 @@ public class SokobanManager : MonoBehaviour
     {
         //SetUpGrid();
 
-        float delta = 0f;
-        float teta = 10f;
+        float delta = 1f;
+        float teta = 0.02f;
 
         foreach (var VARIABLE in gameStateList)
         {
             VARIABLE.vs = 0;
         }
         
-        while (delta < teta)
+        while (delta > teta)
         {
             delta = 0;
             foreach (var state in gameStateList)
             {
-                if (state.listePositionBox.Contains(new Vector2Int(0, 0)))
-                {
-                    if (state.listePositionBox.Contains(new Vector2Int(1, 1)))
-                    {
-                        if (state.positionPlayer == new Vector2Int(2, 0))
-                        {
-                            Debug.Log("posBoxMissExist");
-                        }
-
-
-                    }
-                }
-
-                GameState tempInitial = state.DeepCopy();
-                GameState temp = state.DeepCopy();
+                GameState temp = state;
                 float max = 0;
                 bool isBoxPush = false;
-                List<Vector2Int> listPossibleMove = CheckAllPossibleMove(temp);
+                List<Vector2Int> listPossibleMove = CheckAllPossibleMove(state,out isBoxPush);
 
                 GameState result = new GameState();
                 
                 foreach (var direction in listPossibleMove)
                 {
-                    Vector2Int posToFindState = temp.positionPlayer + direction;
+                    Vector2Int posToFindState = state.positionPlayer + direction;
                     GameState stateToFind = new GameState();
                     stateToFind.positionPlayer = posToFindState;
                     
-                    stateToFind.listePositionBox = temp.listePositionBox;
-                    bool temp2 = false;
+                    stateToFind.listePositionBox = state.listePositionBox;
+                    
                     //check if push box
                         for (int i = 0; i < stateToFind.listePositionBox.Count; i++)
                         {
-                            
                             if (stateToFind.listePositionBox[i] == stateToFind.positionPlayer)
                             {
                                 stateToFind.listePositionBox[i] = stateToFind.listePositionBox[i] + direction;
-                                temp2 = true;
                             }
                         }
                     
@@ -405,11 +387,15 @@ public class SokobanManager : MonoBehaviour
                     result = FindState(stateToFind);
                     if (result.vs > max) max = result.vs;
                 }
-                
+
+                if (result.vs > 0)
+                {
+                    Debug.Log("kcusd");
+                }
 
                 state.vs = state.reward + gamma * result.vs;
 
-                delta = Mathf.Max(delta, Mathf.Abs(tempInitial.vs - result.vs));
+                delta = Mathf.Max(delta, Mathf.Abs(temp.vs - result.vs));
             }
             
             
@@ -436,31 +422,7 @@ public class SokobanManager : MonoBehaviour
 
         //DebugResultsPolicicy();
         ApplyQs();
-        GameState initialState = new GameState();
-        initialState.positionPlayer = positionPlayerStart;
-        initialState.listePositionBox = boxList;
 
-        initialState = FindState(initialState);
-        
-        DisplayState(initialState);
-        
-        
-
-        StartCoroutine(LaunchIA(initialState));
-        
-    }
-    IEnumerator LaunchIA(GameState state)
-    {
-        
-        DisplayState(state);
-            
-        yield return new WaitForSeconds(2);
-
-        Debug.Log("coco");
-        GameState temp = state.DeepCopy();
-        temp.positionPlayer = temp.positionPlayer + temp.direction;
-        temp = FindState(temp);
-        LaunchIA(temp);
     }
 
     GameState FindState(GameState stateToFind)
@@ -480,20 +442,47 @@ public class SokobanManager : MonoBehaviour
         int test = 0;
         foreach (var state in gameStateList)
         {
-            
-            if (stateToFind.listePositionBox.Contains(new Vector2Int(2,0)))
+            if (state.listePositionBox.Contains(new Vector2Int(1,1)))
             {
-                if (stateToFind.listePositionBox.Contains(new Vector2Int(0,1)))
+                if (state.listePositionBox.Contains(new Vector2Int(0,0)))
                 {
-                    if (stateToFind.positionPlayer == new Vector2Int(0,0))
+                    if (state.positionPlayer == new Vector2Int(1,0))
                     {
-                        if (test == 15)
+                        Debug.Log("posBoxMissExist");
+                        if (stateToFind.listePositionBox.Contains(new Vector2Int(1,1)))
                         {
-                            //Debug.Log("buiv");
+                            if (stateToFind.listePositionBox.Contains(new Vector2Int(0,0)))
+                            {
+                                if (stateToFind.positionPlayer == new Vector2Int(1,0))
+                                {
+                                    Debug.Log("posBoxMissExist");
+                                }
+                            }
                         }
-                            //Debug.Log("posBoxMissExist");
+                    }
                         
                         
+                }
+            }
+            if (stateToFind.listePositionBox.Contains(new Vector2Int(1,1)))
+            {
+                if (stateToFind.listePositionBox.Contains(new Vector2Int(0,0)))
+                {
+                    if (stateToFind.positionPlayer == new Vector2Int(1,0))
+                    {
+                        if (state.listePositionBox.Contains(new Vector2Int(1,1)))
+                        {
+                            if (state.listePositionBox.Contains(new Vector2Int(0,0)))
+                            {
+                                if (state.positionPlayer == new Vector2Int(1,0))
+                                {
+                                    Debug.Log("posBoxMissExist");
+                                }
+                        
+                        
+                            }
+                        }
+                        Debug.Log("posBoxMissExist");
                     }
                         
                         
@@ -527,118 +516,85 @@ public class SokobanManager : MonoBehaviour
         return new GameState();
     }
 
-    bool isBoxCanBeMoved(Vector2Int positionActuelle, Vector2Int directionMoved)
-    {
-        if (boxList.Contains(positionActuelle))
-        {
-            if ((positionActuelle + directionMoved).x < column - 1)//pour l'emplacement ou serait deplacé la box
-            {
-                if (!boxList.Contains((positionActuelle + directionMoved)))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    List<Vector2Int> CheckAllPossibleMove(GameState state)
+    List<Vector2Int> CheckAllPossibleMove(GameState state,out bool isBoxPush)
     {
         List <Vector2Int> possibleDirections= new List<Vector2Int>();
         Vector2Int playerPos = state.positionPlayer;
         //droite
         
         Vector2Int rightTile = playerPos;
-        rightTile = playerPos + DirectionV2.Right;
-        if (playerPos.x + 1 < column)
+        rightTile = new Vector2Int(rightTile.x + 1, rightTile.y);
+        if (playerPos.x + 1 < column - 1)
         {
-            if (state.listePositionBox.Contains(rightTile))
+            if (boxList.Contains(rightTile))
             {
-                if ((rightTile + DirectionV2.Right).x < column - 1)//pour l'emplacement ou serait deplacé la box
+                if (!wallList.Contains(new Vector2Int(rightTile.x + 1, rightTile.y)) || rightTile.x + 1 < column - 1)
                 {
-                    if (!state.listePositionBox.Contains((rightTile + DirectionV2.Right)))
-                    {
-                        possibleDirections.Add(DirectionV2.Right);
-                    }
+                    possibleDirections.Add(DirectionV2.Right);
+                    isBoxPush = true;
                 }
             }
-            else
+            else if(!wallList.Contains(rightTile))
             {
                 possibleDirections.Add(DirectionV2.Right);
             }
-            
-            
         }
         //left
         Vector2Int leftTile = playerPos;
-        leftTile = playerPos + DirectionV2.Left;
-        if (playerPos.x - 1 >= 0)
+        leftTile = new Vector2Int(leftTile.x - 1, leftTile.y);
+        if (playerPos.x - 1 > 0)
         {
-            if (state.listePositionBox.Contains(leftTile))
+            if (boxList.Contains(leftTile))
             {
-                if ((leftTile + DirectionV2.Left).x - 1 > 0)//pour l'emplacement ou serait deplacé la box
+                if (!wallList.Contains(new Vector2Int(leftTile.x - 1, leftTile.y)) || leftTile.x - 1 > 0)
                 {
-                    if (!state.listePositionBox.Contains((leftTile + DirectionV2.Left)))
-                    {
-                        possibleDirections.Add(DirectionV2.Left);
-                    }
+                    possibleDirections.Add(DirectionV2.Left);
+                    isBoxPush = true;
                 }
             }
-            else
+            else if(!wallList.Contains(leftTile))
             {
                 possibleDirections.Add(DirectionV2.Left);
             }
-            
-            
         }
         //up
         Vector2Int upTile = playerPos;
-        upTile = playerPos + DirectionV2.Up;
-        if (playerPos.y + 1 < rows)
+        upTile = new Vector2Int(upTile.x, upTile.y + 1);
+        if (playerPos.y < rows - 1)
         {
-            if (state.listePositionBox.Contains(upTile))
+            if (boxList.Contains(upTile))
             {
-                if ((upTile + DirectionV2.Up).y < rows - 1)//pour l'emplacement ou serait deplacé la box
+                if (!wallList.Contains(new Vector2Int(upTile.x, leftTile.y + 1)) || leftTile.y + 1 < rows - 1)
                 {
-                    if (!state.listePositionBox.Contains((upTile + DirectionV2.Up)))
-                    {
-                        possibleDirections.Add(DirectionV2.Up);
-                    }
+                    possibleDirections.Add(DirectionV2.Up);
+                    isBoxPush = true;
                 }
             }
-            else
+            else if(!wallList.Contains(upTile))
             {
                 possibleDirections.Add(DirectionV2.Up);
             }
-
-            
-            
         }
         //down
         Vector2Int downTile = playerPos;
-        downTile = playerPos + DirectionV2.Down;
-        if (playerPos.y - 1 >= 0)
+        downTile = new Vector2Int(downTile.x, downTile.y - 1);
+        if (playerPos.y > 0)
         {
-            if (state.listePositionBox.Contains(downTile))
+            if (boxList.Contains(downTile))
             {
-                if ((downTile + DirectionV2.Down).y > 0)//pour l'emplacement ou serait deplacé la box
+                if (!wallList.Contains(new Vector2Int(downTile.x, downTile.y - 1)) || downTile.y - 1 > 0)
                 {
-                    if (!state.listePositionBox.Contains((downTile + DirectionV2.Down)))
-                    {
-                        possibleDirections.Add(DirectionV2.Down);
-                    }
+                    possibleDirections.Add(DirectionV2.Down);
+                    isBoxPush = true;
                 }
             }
-            else
+            else if(!wallList.Contains(downTile))
             {
                 possibleDirections.Add(DirectionV2.Down);
             }
-            
-            
         }
 
-        
+        isBoxPush = false;
         return possibleDirections;
     }
     
@@ -780,26 +736,17 @@ public class SokobanManager : MonoBehaviour
         //tester
         foreach (var state in gameStateList)
         {
-            GameState temp = state.DeepCopy();
-            List<Vector2Int> possibleMove = CheckAllPossibleMove(temp);
+            bool isbool =false;
+            List<Vector2Int> possibleMove = CheckAllPossibleMove(state, out isbool);
             GameState result = new GameState();
             float max = 0;
                 
             foreach (var direction in possibleMove)
             {
-                Vector2Int posToFindState = temp.positionPlayer + direction;
+                Vector2Int posToFindState = state.positionPlayer + direction;
                 GameState stateToFind = new GameState();
                 stateToFind.positionPlayer = posToFindState;
-                stateToFind.listePositionBox = temp.listePositionBox;
-                
-                for (int i = 0; i < stateToFind.listePositionBox.Count; i++)
-                {
-                            
-                    if (stateToFind.listePositionBox[i] == stateToFind.positionPlayer)
-                    {
-                        stateToFind.listePositionBox[i] = stateToFind.listePositionBox[i] + direction;
-                    }
-                }
+                stateToFind.listePositionBox = state.listePositionBox;
 
                 result = FindState(stateToFind);
                 if (result.vs > max) state.direction = direction;

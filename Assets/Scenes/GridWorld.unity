@@ -359,8 +359,7 @@ MonoBehaviour:
   rows: 6
   column: 6
   gamma: 0.9
-  wallTest: {x: 7, y: 7}
-  holeTest: {x: 7, y: 7}
+  wallList: []
   prefabList:
   - {fileID: 5282755024872594334, guid: 95fe018288b703945b694f2f306f5603, type: 3}
   - {fileID: 592169319057915632, guid: 6d4766d809f6c8549a240f0ad331a12b, type: 3}
@@ -1174,7 +1173,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1728075542
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1197,11 +1196,11 @@ MonoBehaviour:
   boxTest2: {x: 1, y: 3}
   pointTest: {x: 4, y: 3}
   boxList:
-  - {x: -1067483152, y: 551}
-  - {x: 1282895716, y: 1852138345}
+  - {x: 1, y: 1}
+  - {x: 2, y: 2}
   pointList:
-  - {x: -1067483152, y: 551}
-  - {x: 1282895716, y: 1852138345}
+  - {x: 3, y: 3}
+  - {x: 0, y: 3}
   prefabList: []
   SpriteList: []
   defaultTile: {fileID: 6170717740889814202, guid: 4c3044700e2724447bf24097b9cedd70, type: 3}

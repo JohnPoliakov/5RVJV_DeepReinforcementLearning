@@ -18,5 +18,6 @@ public class EditorSokobanGUI : Editor
         
         if(GUILayout.Button("value"))
             manager.ValueIteration();
+        
     }
 }
